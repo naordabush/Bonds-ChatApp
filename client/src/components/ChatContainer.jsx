@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import ChatInput from "./ChatInput";
-
+import VideoCallWindow from "./VideoCallWindow";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
+import { IoCall } from "react-icons/io5";
 import { sendMessageRoute, recieveMessageRoute } from "../utils/APIRoutes";
 
 export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
 
   useEffect(async () => {
     const data = await JSON.parse(
@@ -69,6 +71,13 @@ export default function ChatContainer({ currentChat, socket }) {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleVideoCall = () => {
+    setIsVideoCallOpen(true); // Open video call window when the button is clicked
+  };
+
+  const handleCloseVideoCall = () => {
+    setIsVideoCallOpen(false); // Close video call window
+  };
   return (
     <Container>
       <div className="chat-header">
@@ -82,6 +91,9 @@ export default function ChatContainer({ currentChat, socket }) {
           <div className="username">
             <h3>{currentChat.username}</h3>
           </div>
+          <button onClick={handleVideoCall}>
+            <IoCall />
+          </button>
         </div>
       </div>
       <div className="chat-messages">
@@ -102,6 +114,10 @@ export default function ChatContainer({ currentChat, socket }) {
         })}
       </div>
       <ChatInput handleSendMsg={handleSendMsg} />
+      <VideoCallWindow
+        isOpen={isVideoCallOpen}
+        onClose={handleCloseVideoCall}
+      />
     </Container>
   );
 }
@@ -131,6 +147,18 @@ const Container = styled.div`
       .username {
         h3 {
           color: white;
+        }
+      }
+      button {
+        background-color: #4e0eff;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-size: 1rem;
+        &:hover {
+          background-color: #6f4dff;
         }
       }
     }

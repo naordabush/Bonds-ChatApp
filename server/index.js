@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth");
 const messageRoutes = require("./routes/messages");
 const app = express();
 const socket = require("socket.io");
+const http = require("http");
 require("dotenv").config();
 
 app.use(cors());
@@ -16,7 +17,7 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("DB Connetion Successfull");
+    console.log("DB Connection Successful");
   })
   .catch((err) => {
     console.log(err.message);
@@ -29,9 +30,7 @@ app.get("/ping", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-const server = app.listen(process.env.PORT, () =>
-  console.log(`Server started on ${process.env.PORT}`)
-);
+const server = http.createServer(app);
 const io = socket(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -40,6 +39,7 @@ const io = socket(server, {
 });
 
 global.onlineUsers = new Map();
+
 io.on("connection", (socket) => {
   global.chatSocket = socket;
   socket.on("add-user", (userId) => {
@@ -52,4 +52,30 @@ io.on("connection", (socket) => {
       socket.to(sendUserSocket).emit("msg-recieve", data.msg);
     }
   });
+
+  // WebRTC signaling logic
+  socket.on("offer", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("offer", data);
+    }
+  });
+
+  socket.on("answer", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("answer", data);
+    }
+  });
+
+  socket.on("ice-candidate", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("ice-candidate", data);
+    }
+  });
+});
+
+server.listen(process.env.PORT, () => {
+  console.log(`Server started on ${process.env.PORT}`);
 });
