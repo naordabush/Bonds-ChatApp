@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { IoMdSend } from "react-icons/io";
+import { MdMic } from "react-icons/md";
 import styled from "styled-components";
 import Picker from "emoji-picker-react";
 
@@ -9,7 +10,6 @@ export default function ChatInput({ handleSendMsg }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const handleEmojiPickerhideShow = () => {
     setShowEmojiPicker(!showEmojiPicker);
-  
   };
 
   const handleEmojiClick = (event, emojiObject) => {
@@ -41,6 +41,9 @@ export default function ChatInput({ handleSendMsg }) {
           onChange={(e) => setMsg(e.target.value)}
           value={msg}
         />
+        <button className="mic-btn" type="button">
+          <MdMic />
+        </button>
         <button type="submit">
           <IoMdSend />
         </button>
@@ -140,6 +143,10 @@ const Container = styled.div`
         font-size: 2rem;
         color: white;
       }
+    }
+    .mic-btn {
+      padding: 0.5rem;
+      margin-right: -20px; 
     }
   }
 `;

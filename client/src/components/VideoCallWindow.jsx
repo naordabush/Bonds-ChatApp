@@ -11,8 +11,8 @@ import Draggable from "react-draggable";
 
 export default function VideoCallWindow({ isOpen, onClose }) {
   const [localStream, setLocalStream] = useState(null);
-  const [isMicMuted, setIsMicMuted] = useState(false);
-  const [isCameraOff, setIsCameraOff] = useState(false);
+  const [isMicMuted, setIsMicMuted] = useState(true);
+  const [isCameraOff, setIsCameraOff] = useState(true);
   const videoRef = useRef();
 
   useEffect(() => {
@@ -30,6 +30,8 @@ export default function VideoCallWindow({ isOpen, onClose }) {
       if (localStream) {
         localStream.getTracks().forEach((track) => track.stop());
         setLocalStream(null);
+        setIsMicMuted(true);
+        setIsCameraOff(true);
       }
     }
   }, [isOpen]);
@@ -84,7 +86,7 @@ export default function VideoCallWindow({ isOpen, onClose }) {
             <IconButton onClick={handleToggleMic} isMuted={isMicMuted}>
               {isMicMuted ? <MdMicOff /> : <MdMic />}
             </IconButton>
-            <IconButton onClick={handleToggleCamera}>
+            <IconButton onClick={handleToggleCamera} isVidlosed={isCameraOff}>
               {isCameraOff ? <MdVideocamOff /> : <MdVideocam />}
             </IconButton>
             <HangUpButton onClick={handleHangUp}>
@@ -137,9 +139,11 @@ const Controls = styled.div`
   justify-content: space-around;
   margin-top: 10px;
 `;
-
 const IconButton = styled.button`
-  background-color: ${({ isMuted }) => (isMuted ? "#ffeb3b" : "#333")};
+  background-color: ${({ isMuted, isVidlosed }) => {
+    if (!isMuted && !isVidlosed) return "#ffeb3b"; // Yellow when not muted and camera is on
+    return "#333"; // Default color
+  }};
   border: none;
   cursor: pointer;
   color: #ffffff;
@@ -151,7 +155,10 @@ const IconButton = styled.button`
   justify-content: center;
 
   &:hover {
-    background-color: ${({ isMuted }) => (isMuted ? "#fdd835" : "#555")};
+    background-color: ${({ isMuted, isVidlosed }) => {
+      if (!isMuted && !isVidlosed) return "#fdd835"; // Yellow when not muted and camera is on
+      return "#555"; // Default hover color
+    }};
   }
 
   &:focus {

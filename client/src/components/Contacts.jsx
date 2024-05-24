@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import Logo from "../assets/logo.svg";
 import Logout from "./Logout";
 
 export default function Contacts({ contacts, changeChat }) {
@@ -28,7 +27,6 @@ export default function Contacts({ contacts, changeChat }) {
           <div className="header">
             <Logout />
             <div className="brand">
-              <img src={Logo} alt="logo" />
               <h3>Bonds</h3>
             </div>
           </div>

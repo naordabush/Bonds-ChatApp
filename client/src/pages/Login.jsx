@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { useNavigate, Link } from "react-router-dom";
-import Logo from "../assets/logo.svg";
 import loginImg from "../assets/loginImg.svg";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -71,7 +70,6 @@ export default function Login() {
         <FormContent>
           <form action="" onSubmit={(event) => handleSubmit(event)}>
             <div className="brand">
-              <img src={Logo} alt="logo" />
               <h1>Bonds</h1>
             </div>
             <input
