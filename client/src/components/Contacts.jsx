@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Logo from "../assets/logo.svg";
+import Logout from "./Logout";
 
 export default function Contacts({ contacts, changeChat }) {
   const [currentUserName, setCurrentUserName] = useState(undefined);
   const [currentUserImage, setCurrentUserImage] = useState(undefined);
   const [currentSelected, setCurrentSelected] = useState(undefined);
+
   useEffect(async () => {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
@@ -13,17 +15,22 @@ export default function Contacts({ contacts, changeChat }) {
     setCurrentUserName(data.username);
     setCurrentUserImage(data.avatarImage);
   }, []);
+
   const changeCurrentChat = (index, contact) => {
     setCurrentSelected(index);
     changeChat(contact);
   };
+
   return (
     <>
-      {currentUserImage && currentUserImage && (
+      {currentUserImage && currentUserName && (
         <Container>
-          <div className="brand">
-            <img src={Logo} alt="logo" />
-            <h3>Bonds</h3>
+          <div className="header">
+            <Logout />
+            <div className="brand">
+              <img src={Logo} alt="logo" />
+              <h3>Bonds</h3>
+            </div>
           </div>
           <div className="contacts">
             {contacts.map((contact, index) => {
@@ -64,11 +71,18 @@ export default function Contacts({ contacts, changeChat }) {
     </>
   );
 }
+
 const Container = styled.div`
   display: grid;
   grid-template-rows: 10% 75% 15%;
   overflow: hidden;
   background-color: #080420;
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+  }
   .brand {
     display: flex;
     align-items: center;
@@ -122,7 +136,6 @@ const Container = styled.div`
       background-color: #9a86f3;
     }
   }
-
   .current-user {
     background-color: #0d0d30;
     display: flex;

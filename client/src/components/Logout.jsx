@@ -1,11 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BiPowerOff } from "react-icons/bi";
+import { RiLogoutBoxLine } from "react-icons/ri";
 import styled from "styled-components";
 import axios from "axios";
 import { logoutRoute } from "../utils/APIRoutes";
+
 export default function Logout() {
   const navigate = useNavigate();
+
   const handleClick = async () => {
     const id = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
@@ -16,9 +18,10 @@ export default function Logout() {
       navigate("/login");
     }
   };
+
   return (
     <Button onClick={handleClick}>
-      <BiPowerOff />
+      <RiLogoutBoxLine />
     </Button>
   );
 }
