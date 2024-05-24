@@ -73,6 +73,12 @@ export default function ChatContainer({ currentChat, socket }) {
 
   const handleVideoCall = () => {
     setIsVideoCallOpen(true); // Open video call window when the button is clicked
+    if (currentChat && currentChat._id) {
+      // Emit "call-user" event to the server
+      socket.emit("call-user", { to: currentChat._id });
+    } else {
+      console.log("No user selected to call");
+    }
   };
 
   const handleCloseVideoCall = () => {

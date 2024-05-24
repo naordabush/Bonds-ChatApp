@@ -74,6 +74,22 @@ io.on("connection", (socket) => {
       socket.to(sendUserSocket).emit("ice-candidate", data);
     }
   });
+
+  // Handle call initiation
+  socket.on("call-user", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("incoming-call", data);
+    }
+  });
+
+  // Handle call acceptance
+  socket.on("accept-call", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("call-accepted", data);
+    }
+  });
 });
 
 server.listen(process.env.PORT, () => {
