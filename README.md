@@ -1,3 +1,3 @@
 # Bonds-ChatApp
 
-Chat App Built with React, Node.js, Socket.io and MongoDB
+Chat App with video calls option Built with React, Node.js, Socket.io and MongoDB
