@@ -9,6 +9,7 @@ export default function ChatInput({ handleSendMsg }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const handleEmojiPickerhideShow = () => {
     setShowEmojiPicker(!showEmojiPicker);
+  
   };
 
   const handleEmojiClick = (event, emojiObject) => {
