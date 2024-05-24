@@ -1,10 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { MdCallEnd, MdMic, MdMicOff } from "react-icons/md";
+import {
+  MdCallEnd,
+  MdMic,
+  MdMicOff,
+  MdVideocam,
+  MdVideocamOff,
+} from "react-icons/md";
+import Draggable from "react-draggable";
 
 export default function VideoCallWindow({ isOpen, onClose }) {
   const [localStream, setLocalStream] = useState(null);
   const [isMicMuted, setIsMicMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
   const videoRef = useRef();
 
   useEffect(() => {
@@ -19,7 +27,6 @@ export default function VideoCallWindow({ isOpen, onClose }) {
           console.error("Error accessing media devices:", error);
         });
     } else {
-      // Clean up resources when the window is closed
       if (localStream) {
         localStream.getTracks().forEach((track) => track.stop());
         setLocalStream(null);
@@ -30,9 +37,18 @@ export default function VideoCallWindow({ isOpen, onClose }) {
   const handleToggleMic = () => {
     if (localStream) {
       localStream.getAudioTracks().forEach((track) => {
-        track.enabled = !track.enabled; // Toggle the enabled state of the audio track
+        track.enabled = !track.enabled;
       });
-      setIsMicMuted(!isMicMuted); // Update the state
+      setIsMicMuted(!isMicMuted);
+    }
+  };
+
+  const handleToggleCamera = () => {
+    if (localStream) {
+      localStream.getVideoTracks().forEach((track) => {
+        track.enabled = !isCameraOff;
+      });
+      setIsCameraOff(!isCameraOff);
     }
   };
 
@@ -41,7 +57,6 @@ export default function VideoCallWindow({ isOpen, onClose }) {
   };
 
   const handleWindowClick = (e) => {
-    // Prevent event propagation to the overlay when clicking inside the window
     e.stopPropagation();
   };
 
@@ -61,18 +76,23 @@ export default function VideoCallWindow({ isOpen, onClose }) {
 
   return (
     <Overlay isOpen={isOpen}>
-      <Window id="video-call-window" onClick={handleWindowClick}>
-        <h2>Video Call</h2>
-        <Video ref={videoRef} autoPlay playsInline />
-        <Controls>
-          <IconButton onClick={handleToggleMic}>
-            {isMicMuted ? <MdMicOff /> : <MdMic />}
-          </IconButton>
-          <HangUpButton onClick={handleHangUp}>
-            <MdCallEnd />
-          </HangUpButton>
-        </Controls>
-      </Window>
+      <Draggable handle="#video-call-window" bounds="parent">
+        <Window id="video-call-window" onClick={handleWindowClick}>
+          <Title>Video Call</Title>
+          <Video ref={videoRef} autoPlay playsInline />
+          <Controls>
+            <IconButton onClick={handleToggleMic} isMuted={isMicMuted}>
+              {isMicMuted ? <MdMicOff /> : <MdMic />}
+            </IconButton>
+            <IconButton onClick={handleToggleCamera}>
+              {isCameraOff ? <MdVideocamOff /> : <MdVideocam />}
+            </IconButton>
+            <HangUpButton onClick={handleHangUp}>
+              <MdCallEnd />
+            </HangUpButton>
+          </Controls>
+        </Window>
+      </Draggable>
     </Overlay>
   );
 }
@@ -94,40 +114,55 @@ const Window = styled.div`
   background-color: #0c2844;
   padding: 20px;
   border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: move;
+`;
+
+const Title = styled.h2`
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 10px;
 `;
 
 const Video = styled.video`
   width: 100%;
   border-radius: 8px;
+  transform: scaleX(-1);
 `;
 
 const Controls = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   margin-top: 10px;
 `;
 
 const IconButton = styled.button`
-  margin-right: 10px;
-  background: none;
+  background-color: ${({ isMuted }) => (isMuted ? "#ffeb3b" : "#333")};
   border: none;
   cursor: pointer;
-  color: #333;
+  color: #ffffff;
   font-size: 24px;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: ${({ isMuted }) => (isMuted ? "#fdd835" : "#555")};
+  }
 
   &:focus {
     outline: none;
   }
 `;
 
-const HangUpButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #f00;
-  font-size: 24px;
+const HangUpButton = styled(IconButton)`
+  background-color: #f00;
 
-  &:focus {
-    outline: none;
+  &:hover {
+    background-color: #d32f2f;
   }
 `;
