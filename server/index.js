@@ -31,6 +31,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
 const server = http.createServer(app);
+
+// Modify the line below to listen on all network interfaces
+const port = process.env.PORT || 3000;
+const host = process.env.HOST || "0.0.0.0"; // Listen on all network interfaces
+
 const io = socket(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -93,5 +98,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(process.env.PORT, () => {
-  console.log(`Server started on ${process.env.PORT}`);
+  console.log(`Server started on ${host}:${port}`);
 });

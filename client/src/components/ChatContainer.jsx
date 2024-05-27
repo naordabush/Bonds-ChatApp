@@ -71,19 +71,36 @@ export default function ChatContainer({ currentChat, socket }) {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleVideoCall = () => {
+  const handleVideoCall = async () => {
     setIsVideoCallOpen(true); // Open video call window when the button is clicked
+    const data = await JSON.parse(
+      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+    );
     if (currentChat && currentChat._id) {
-      // Emit "call-user" event to the server
-      socket.emit("call-user", { to: currentChat._id });
+      // Emit "call-user" event to the server with both user IDs
+      socket.current.emit("call-user", {
+        from: data._id,
+        to: currentChat._id,
+      });
     } else {
       console.log("No user selected to call");
     }
   };
 
   const handleCloseVideoCall = () => {
-    setIsVideoCallOpen(false); // Close video call window
+    setIsVideoCallOpen(false);
   };
+
+  useEffect(() => {
+    if (socket.current) {
+      socket.current.on("call-user", ({ from }) => {
+        // Display incoming call notification
+        // Add logic to accept or decline the call
+        console.log(`Incoming call from user ID: ${from}`);
+      });
+    }
+  }, []);
+
   return (
     <Container>
       <div className="chat-header">
