@@ -86,6 +86,7 @@ const Container = styled.div`
     align-items: center;
     gap: 1rem;
     justify-content: center;
+    flex-grow: 1;
     img {
       height: 2rem;
     }
