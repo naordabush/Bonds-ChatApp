@@ -11,8 +11,8 @@ import Draggable from "react-draggable";
 
 export default function VideoCallWindow({ isOpen, onClose }) {
   const [localStream, setLocalStream] = useState(null);
-  const [isMicMuted, setIsMicMuted] = useState(true);
-  const [isCameraOff, setIsCameraOff] = useState(true);
+  const [isMicMuted, setIsMicMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
   const videoRef = useRef();
 
   useEffect(() => {
@@ -30,8 +30,8 @@ export default function VideoCallWindow({ isOpen, onClose }) {
       if (localStream) {
         localStream.getTracks().forEach((track) => track.stop());
         setLocalStream(null);
-        setIsMicMuted(true);
-        setIsCameraOff(true);
+        setIsMicMuted(false);
+        setIsCameraOff(false);
       }
     }
   }, [isOpen]);
@@ -47,10 +47,29 @@ export default function VideoCallWindow({ isOpen, onClose }) {
 
   const handleToggleCamera = () => {
     if (localStream) {
-      localStream.getVideoTracks().forEach((track) => {
-        track.enabled = !isCameraOff;
-      });
-      setIsCameraOff(!isCameraOff);
+      if (isCameraOff) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then((newStream) => {
+            const videoTrack = newStream.getVideoTracks()[0];
+            localStream.addTrack(videoTrack);
+            setLocalStream(new MediaStream(localStream.getTracks()));
+            videoRef.current.srcObject = new MediaStream(
+              localStream.getTracks()
+            );
+            setIsCameraOff(false);
+          })
+          .catch((error) => {
+            console.error("Error accessing media devices:", error);
+          });
+      } else {
+        localStream.getVideoTracks().forEach((track) => track.stop());
+        setLocalStream(new MediaStream(localStream.getAudioTracks()));
+        videoRef.current.srcObject = new MediaStream(
+          localStream.getAudioTracks()
+        );
+        setIsCameraOff(true);
+      }
     }
   };
 
@@ -81,12 +100,20 @@ export default function VideoCallWindow({ isOpen, onClose }) {
       <Draggable handle="#video-call-window" bounds="parent">
         <Window id="video-call-window" onClick={handleWindowClick}>
           <Title>Video Call</Title>
-          <Video ref={videoRef} autoPlay playsInline />
+          <VideoContainer>
+            <Video ref={videoRef} autoPlay playsInline />
+            {isCameraOff && (
+              <CameraOffOverlay>
+                <MdVideocamOff size={48} />
+                <CameraOffText>Camera feed is off</CameraOffText>
+              </CameraOffOverlay>
+            )}
+          </VideoContainer>
           <Controls>
             <IconButton onClick={handleToggleMic} isMuted={isMicMuted}>
               {isMicMuted ? <MdMicOff /> : <MdMic />}
             </IconButton>
-            <IconButton onClick={handleToggleCamera} isVidlosed={isCameraOff}>
+            <IconButton onClick={handleToggleCamera} isCameraOff={isCameraOff}>
               {isCameraOff ? <MdVideocamOff /> : <MdVideocam />}
             </IconButton>
             <HangUpButton onClick={handleHangUp}>
@@ -128,10 +155,36 @@ const Title = styled.h2`
   margin-bottom: 10px;
 `;
 
+const VideoContainer = styled.div`
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+`;
+
 const Video = styled.video`
   width: 100%;
   border-radius: 8px;
   transform: scaleX(-1);
+`;
+
+const CameraOffOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  color: #ffffff;
+`;
+
+const CameraOffText = styled.p`
+  margin-top: 10px;
+  font-size: 18px;
 `;
 
 const Controls = styled.div`
@@ -139,10 +192,11 @@ const Controls = styled.div`
   justify-content: space-around;
   margin-top: 10px;
 `;
+
 const IconButton = styled.button`
-  background-color: ${({ isMuted, isVidlosed }) => {
-    if (!isMuted && !isVidlosed) return "#ffeb3b"; // Yellow when not muted and camera is on
-    return "#333"; // Default color
+  background-color: ${({ isMuted, isCameraOff }) => {
+    if (isMuted || isCameraOff) return "#ffeb3b"; 
+    return "#333"; 
   }};
   border: none;
   cursor: pointer;
@@ -155,9 +209,9 @@ const IconButton = styled.button`
   justify-content: center;
 
   &:hover {
-    background-color: ${({ isMuted, isVidlosed }) => {
-      if (!isMuted && !isVidlosed) return "#fdd835"; // Yellow when not muted and camera is on
-      return "#555"; // Default hover color
+    background-color: ${({ isMuted, isCameraOff }) => {
+      if (isMuted || isCameraOff) return "#fdd835"; 
+      return "#555"; 
     }};
   }
 
