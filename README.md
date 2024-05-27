@@ -42,3 +42,15 @@ To initiate a video call, click on the video call icon next to the user's name i
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## screenshots
+
+![Screenshot 2024-05-27 124522](https://github.com/naordabush/Bonds-ChatApp/assets/65256155/9bee9aa3-d7fe-4f36-a7da-29526a503d20)
+
+![Screenshot 2024-05-27 124532](https://github.com/naordabush/Bonds-ChatApp/assets/65256155/03ef399a-dbdc-4266-bb04-efa23a76d286)
+
+![Screenshot 2024-05-27 125335](https://github.com/naordabush/Bonds-ChatApp/assets/65256155/659df126-ec8c-4248-b870-3d1eb9503b79)
+
+![Screenshot 2024-05-27 125507](https://github.com/naordabush/Bonds-ChatApp/assets/65256155/34a362cb-66a5-436c-b3b4-1d4a4a0c60a7)
+
+
