@@ -14,6 +14,10 @@ export default function VideoCallWindow({ isOpen, onClose }) {
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const videoRef = useRef();
+  const canvasRef = useRef();
+  const audioContextRef = useRef();
+  const analyserRef = useRef();
+  const animationIdRef = useRef();
 
   useEffect(() => {
     if (isOpen) {
@@ -22,6 +26,7 @@ export default function VideoCallWindow({ isOpen, onClose }) {
         .then((stream) => {
           setLocalStream(stream);
           videoRef.current.srcObject = stream;
+          setupAudioVisualizer(stream);
         })
         .catch((error) => {
           console.error("Error accessing media devices:", error);
@@ -33,8 +38,60 @@ export default function VideoCallWindow({ isOpen, onClose }) {
         setIsMicMuted(false);
         setIsCameraOff(false);
       }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+      cancelAnimationFrame(animationIdRef.current);
     }
   }, [isOpen]);
+
+  const setupAudioVisualizer = (stream) => {
+    const audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(stream);
+    const analyser = audioContext.createAnalyser();
+
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    source.connect(analyser);
+
+    const canvas = canvasRef.current;
+    const canvasCtx = canvas.getContext("2d");
+
+    const draw = () => {
+      animationIdRef.current = requestAnimationFrame(draw);
+
+      analyser.getByteFrequencyData(dataArray);
+
+      const barWidth = canvas.width / bufferLength;
+      const barSpacing = 2;
+      const barHeightMultiplier = canvas.height / 255;
+
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = dataArray[i] * barHeightMultiplier;
+        const x = i * (barWidth + barSpacing);
+        const y = canvas.height - barHeight;
+
+        // Smoothly interpolate hue across the spectrum
+        const hue = (i / bufferLength) * 360;
+
+        // Convert HSL to RGB color
+        const rgbColor = `hsl(${hue}, 100%, 50%)`;
+
+        canvasCtx.fillStyle = rgbColor;
+        canvasCtx.fillRect(x, y, barWidth, barHeight);
+      }
+    };
+
+    draw();
+
+    audioContextRef.current = audioContext;
+    analyserRef.current = analyser;
+  };
 
   const handleToggleMic = () => {
     if (localStream) {
@@ -109,6 +166,9 @@ export default function VideoCallWindow({ isOpen, onClose }) {
               </CameraOffOverlay>
             )}
           </VideoContainer>
+          <CanvasContainer>
+            <Canvas ref={canvasRef} width="600" height="100" />
+          </CanvasContainer>
           <Controls>
             <IconButton onClick={handleToggleMic} isMuted={isMicMuted}>
               {isMicMuted ? <MdMicOff /> : <MdMic />}
@@ -187,6 +247,15 @@ const CameraOffText = styled.p`
   font-size: 18px;
 `;
 
+const CanvasContainer = styled.div`
+  margin-top: 10px;
+`;
+
+const Canvas = styled.canvas`
+  width: 100%;
+  border-radius: 8px;
+`;
+
 const Controls = styled.div`
   display: flex;
   justify-content: space-around;
@@ -195,8 +264,8 @@ const Controls = styled.div`
 
 const IconButton = styled.button`
   background-color: ${({ isMuted, isCameraOff }) => {
-    if (isMuted || isCameraOff) return "#ffeb3b"; 
-    return "#333"; 
+    if (isMuted || isCameraOff) return "#ffeb3b";
+    return "#333";
   }};
   border: none;
   cursor: pointer;
@@ -210,8 +279,8 @@ const IconButton = styled.button`
 
   &:hover {
     background-color: ${({ isMuted, isCameraOff }) => {
-      if (isMuted || isCameraOff) return "#fdd835"; 
-      return "#555"; 
+      if (isMuted || isCameraOff) return "#fdd835";
+      return "#555";
     }};
   }
 
